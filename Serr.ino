@@ -1,6 +1,6 @@
 #include <LiquidCrystal.h>
-#include <DHT.h>
-#include "DHT.h"
+//#include <DHT.h>
+//#include "DHT.h"
 #define SENDIST 5 //ultrasuoni
 
 
@@ -13,15 +13,15 @@ const int soglia_critica = 500; //Soglia di umidità terreno alla quale si accen
 #define Terreno_Pianta_4 A3
 
 //pin relay elettrovalvole
-#define Elettrovalvola1 2
-#define Elettrovalvola2 3
-#define Elettrovalvola3 4 
-#define Elettrovalvola4 5 
+#define Elettrovalvola1 12
+#define Elettrovalvola2 13
+#define Elettrovalvola3 10 
+#define Elettrovalvola4 9 
 
 //pin sensore umidità/temperatura aria
 #define SensoreAria 8
 #define DHTTYPE DHT11
-DHT dht(SensoreAria, DHTTYPE);
+//DHT dht(SensoreAria, DHTTYPE);
 
 
 
@@ -65,51 +65,25 @@ void setup()
 }
 void loop()
 {
-  umiditaTerreno();
+  umiditaTerreno(Terreno_Pianta_1,Elettrovalvola1, 1, &umiditPianta1 );
+  umiditaTerreno(Terreno_Pianta_2, Elettrovalvola2, 2, &umiditPianta2 );
+  umiditaTerreno(Terreno_Pianta_3, Elettrovalvola3, 3, &umiditPianta3 );
+  umiditaTerreno(Terreno_Pianta_4, Elettrovalvola4, 4, &umiditPianta4);
   LCD();
   livelloAcqua();
+  //TempHumAria()
 }
 
-void umiditaTerreno(){
+void umiditaTerreno(int SensorePianta, int elettrovalvola, int numeroPianta, int *umiditPianta){
   //controllo suolo pianta 
-  umiditPianta1 = analogRead(Terreno_Pianta_1); //Legge il valore analogico del sensore umidità terreno
-  Serial.print("Sensore pianta 1 ");
+  *umiditPianta = analogRead(SensorePianta); //Legge il valore analogico del sensore umidità terreno
+  Serial.print("Sensore pianta ");
+  Serial.print(numeroPianta);
   Serial.println(umiditPianta1); //Stampa a schermo il valore
   if (umiditPianta1 <= soglia_critica)
-  digitalWrite(Elettrovalvola1,HIGH); //Accendi led
+  digitalWrite(elettrovalvola,HIGH); //Accendi led
   else
-  digitalWrite(Elettrovalvola1,LOW); //Spegni led
-  
-  //controllo suolo pianta 2
-  
-  umiditPianta2 = analogRead(Terreno_Pianta_2); //Legge il valore analogico del sensore umidità terreno
-  Serial.print("Sensore pianta 2 ");
-  Serial.println(umiditPianta2); //Stampa a schermo il valore
-  if (umiditPianta2 <= soglia_critica)
-  digitalWrite(Elettrovalvola2,HIGH); //Accendi led
-  else
-  digitalWrite(Elettrovalvola2,LOW); //Spegni led
-  
-  //controllo suolo pianta 3
-  
-  umiditPianta3 = analogRead(Terreno_Pianta_3); //Legge il valore analogico del sensore umidità terreno
-  Serial.print("Sensore pianta 3 ");
-  Serial.println(umiditPianta3); //Stampa a schermo il valore
-  if (umiditPianta3 <= soglia_critica)
-  digitalWrite(Elettrovalvola3,HIGH); //Accendi led
-  else
-  digitalWrite(Elettrovalvola3,LOW); //Spegni led
-  
-  //controllo suolo pianta 4
-  
-  umiditPianta4 = analogRead(Terreno_Pianta_4); //Legge il valore analogico del sensore umidità terreno
-  Serial.print("Sensore pianta 4 ");
-  Serial.println(umiditPianta4); //Stampa a schermo il valore
-  if (umiditPianta4 <= soglia_critica)
-  digitalWrite(Elettrovalvola4,HIGH); //Accendi led
-  else
-  digitalWrite(Elettrovalvola4,LOW); //Spegni led
-  delay(2000); //Attende due secondi
+  digitalWrite(elettrovalvola,LOW); //Spegni led
 }
 
 void LCD(){
@@ -117,10 +91,10 @@ void LCD(){
   
   lcd.setCursor(0, 0);
   lcd.print("temperatura:");
-  lcd.print(variabileTest);
+  lcd.print(umiditPianta1);
   lcd.setCursor(0, 1);
   lcd.print("Um aria:");
-  lcd.print(variabileTest);
+  lcd.print(umAria);
   delay(2000);
   lcd.clear();
   
@@ -171,7 +145,7 @@ void livelloAcqua(){
   Serial.print("\%\n");
 }
 
-void TempHumAria(){
+/*void TempHumAria(){
   int umAria = dht.readTemperature();
   int tempAria = dht.readHumidity();
-}
+}*/
