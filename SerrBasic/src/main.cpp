@@ -1,7 +1,11 @@
 #include <Arduino.h>
-#include <LiquidCrystal.h>
 #include <DHT.h>
 #include <Adafruit_Sensor.h>
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
+
 #define SENDIST 5 // distanza sensore cm
 
 const int soglia_critica = 800; // Soglia di umidità terreno alla quale si accenderà la valvola
@@ -35,9 +39,12 @@ int soglia_temperatura = 25;
 #define SensoreAria 8
 #define LEDAcqua LED_BUILTIN
 #define DHTTYPE DHT11
+//delay per display
+#define DELAY_DISPLAY 2000
+#define DELAY_REFRESH 150
 
 DHT dht(SensoreAria, DHT11);
-
+Adafruit_SSD1306 display(128,64,&Wire,4);
 // pin ultrasuoni
 #define trigUS 3
 #define echoUS 2
@@ -70,7 +77,7 @@ byte height = 20, wHeight = 0, lvlAcquaPerc;
 
 // dichiarazione funzioni
 void umiditaTerreno(int SensorePianta, int elettrovalvola, int numeroPianta, int *umiditPianta);
-// void LCD();
+void schermo();
 void livelloAcqua();
 void TempHumAria();
 
@@ -100,6 +107,11 @@ void setup()
   // lcd.begin(16, 2);
   pinMode(trigUS, OUTPUT);
   pinMode(echoUS, INPUT);
+  if(!display.begin(SSD1306_SWITCHCAPVCC,0x3C)){
+    while(true);
+  }  
+  display.display();
+  display.clearDisplay();
 }
 void loop()
 {
@@ -117,7 +129,7 @@ void loop()
   if (!digitalRead(plugPianta1)) // TODO logica pullup pulsante low high da controllare                                                                             // 60 minuti in millisecondi
     umiditaTerreno(Terreno_Pianta_1, Elettrovalvola1, 1, &umiditPianta1);
   else if (digitalRead(plugPianta1) && umiditPianta1 != 0)
-    umiditPianta1 == 0;
+    umiditPianta1 = 0;
   // if (!digitalRead(plugPianta2))
   umiditaTerreno(Terreno_Pianta_2, Elettrovalvola2, 2, &umiditPianta2);
   // if (!digitalRead(plugPianta3))
@@ -179,28 +191,6 @@ void umiditaTerreno(int SensorePianta, int elettrovalvola, int numeroPianta, int
   }
 }
 
-// void LCD(){
-//   variabileTest=44;
-
-//   lcd.setCursor(0, 0);
-//   lcd.print("temperatura:");
-//   lcd.print(umiditPianta1);
-//   lcd.setCursor(0, 1);
-//   lcd.print("Um aria:");
-//   lcd.print(umAria);
-//   delay(2000);
-//   lcd.clear();
-
-//   lcd.setCursor(0, 0);
-//   lcd.print("Um terra:");
-//   lcd.print(variabileTest);
-//   lcd.setCursor(0, 1);
-//   lcd.print("Lvl acqua:");
-//   lcd.print(lvlAcquaPerc);
-//   delay(2000);
-//   lcd.clear();
-// }
-
 void livelloAcqua()
 {
   // Mandiamo il segnale
@@ -233,4 +223,59 @@ void TempHumAria()
 {
   tempAria = dht.readTemperature();
   umAria = dht.readHumidity();
+}
+void schermo(){
+  display.setTextSize(2);
+  display.setTextColor(WHITE);
+  display.cp437(true);
+  //stampo due valori per volta
+  //umidità pianta 1 e 2
+  display.setCursor(0,0);
+  display.print("Um vaso 1:");
+  display.print(umiditPianta1);
+  display.setCursor(0,35);
+  display.print("Um vaso 2:");
+  display.print(umiditPianta2);
+  display.display();
+  //delay
+  delay(DELAY_DISPLAY);
+  display.clearDisplay();
+  display.display();
+  delay(DELAY_REFRESH);
+  //umidità pianta 3 e 4
+  display.setCursor(0,0);
+  display.print("Um vaso 3:");
+  display.print(umiditPianta3);
+  display.setCursor(0,35);
+  display.print("Um vaso 4:");
+  display.print(umiditPianta4);
+  display.display();
+  //delay
+  delay(DELAY_DISPLAY);
+  display.clearDisplay();
+  display.display();
+  delay(DELAY_REFRESH);
+  //stampa temperatura e umidità aria
+  display.setCursor(0,0);
+  display.print("Temp:");
+  display.print(tempAria);
+  display.setCursor(0,35);
+  display.print("Um aria:");
+  display.print(umAria);
+  display.display();
+  //delay
+  delay(DELAY_DISPLAY);
+  display.clearDisplay();
+  display.display();
+  delay(DELAY_REFRESH);
+  //stampa livello acqua
+  display.setCursor(0,0);
+  display.print("lvl acqua:");
+  display.print(lvlAcqua);
+  display.display();
+  //delay
+  delay(DELAY_DISPLAY);
+  display.clearDisplay();
+  display.display();
+  delay(DELAY_REFRESH);
 }
