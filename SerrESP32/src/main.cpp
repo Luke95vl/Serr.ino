@@ -1,8 +1,11 @@
 #include <Arduino.h>
+#include <Wire.h>
 #include <LiquidCrystal.h>
-#include <DHT.h>
+#include "SparkFunHTU21D.h"
 #include <Adafruit_Sensor.h>
 #define SENDIST 5 // distanza sensore cm
+
+HTU21D SensoreTempSerra; //oggetto umidità 
 
 const int soglia_critica = 800; // Soglia di umidità terreno alla quale si accenderà la valvola
 int soglia_temperatura = 25;
@@ -33,10 +36,7 @@ int soglia_temperatura = 25;
 
 // pin sensore umidità/temperatura aria
 #define SensoreAria 8
-#define LEDAcqua LED_BUILTIN
-#define DHTTYPE DHT11
-
-DHT dht(SensoreAria, DHT11);
+// #define LEDAcqua LED_BUILTIN
 
 // pin ultrasuoni
 #define trigUS 3
@@ -76,18 +76,18 @@ void TempHumAria();
 
 void setup()
 {
-  Serial.begin(115200);
-  dht.begin();
+  Serial.begin(250000);
+  SensoreTempSerra.begin();
   pinMode(Elettrovalvola1, OUTPUT);
   pinMode(Elettrovalvola2, OUTPUT);
   pinMode(Elettrovalvola3, OUTPUT);
   pinMode(Elettrovalvola4, OUTPUT);
   // pinMode(Elettrovalvola5, OUTPUT);
   // pinMode(Elettrovalvola6, OUTPUT);
-  pinMode(LEDAcqua, OUTPUT);
+  // pinMode(LEDAcqua, OUTPUT);
   pinMode(Ventola, OUTPUT);
   digitalWrite(Ventola, HIGH);
-   digitalWrite(Elettrovalvola1, HIGH);
+  digitalWrite(Elettrovalvola1, HIGH);
 
   // pin verifica plug piante
   pinMode(plugPianta1, INPUT_PULLUP);
@@ -231,6 +231,6 @@ void livelloAcqua()
 
 void TempHumAria()
 {
-  tempAria = dht.readTemperature();
-  umAria = dht.readHumidity();
+  tempAria = SensoreTempSerra.readTemperature();
+  umAria = SensoreTempSerra.readHumidity();
 }
